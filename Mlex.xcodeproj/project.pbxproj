@@ -10,33 +10,12 @@
 		14002F602D44E1AE000BB21B /* libMlex.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libMlex.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		14002F722D44E3BE000BB21B /* Exceptions for "Mlex" folder in "Mlex" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				SharedHeader.h,
-			);
-			target = 14002F5F2D44E1AE000BB21B /* Mlex */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		14002F732D44E3BE000BB21B /* Exceptions for "Mlex" folder in "Compile Sources" phase from "Mlex" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = 14002F5D2D44E1AE000BB21B /* Sources */;
-			membershipExceptions = (
-				SharedHeader.h,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		14002F622D44E1AE000BB21B /* Mlex */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				14002F722D44E3BE000BB21B /* Exceptions for "Mlex" folder in "Mlex" target */,
-				14002F732D44E3BE000BB21B /* Exceptions for "Mlex" folder in "Compile Sources" phase from "Mlex" target */,
-			);
+			explicitFileTypes = {
+				heapFind.m = sourcecode.c.objc;
+			};
 			path = Mlex;
 			sourceTree = "<group>";
 		};

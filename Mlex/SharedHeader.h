@@ -5,18 +5,23 @@
 //  Created by Dora Orak on 25.01.2025.
 //
 #pragma once
+
 #import <stdio.h>
 #import <Foundation/Foundation.h>
+#import <CoreFoundation/CoreFoundation.h>
 #import <AppKit/AppKit.h>
 #import <objc/runtime.h>
 #import <objc/message.h>
 #import <mach/mach.h>
 #import <dlfcn.h>
+#import <malloc/malloc.h>
+
+void heapFind(void* ptr);
+
 
 typedef struct {
-    mach_vm_address_t address;
-    mach_vm_size_t size;
-} vm_range_t;
+    Class isa;
+} maybe_id;
 
 typedef struct _VMUObjectGraphNode {
     uint64_t address;
@@ -43,3 +48,7 @@ typedef NS_ENUM(uint32_t, VMUScanMask) {
     VMUScanMaskUnsafeUnretained  = 8,
     VMUScanMaskMaxValue          = VMUScanMaskUnsafeUnretained,
 };
+
+
+
+

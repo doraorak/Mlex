@@ -10,9 +10,9 @@
 @interface Mlex : NSObject
 
 @property NSWindow* MxWindow;
-@property NSMutableArray* MxFoundHeapObjects;
+@property(strong, nonatomic, nonnull) NSMutableArray* MxFoundHeapObjects;
+
 
 -(void) MXCreateWindow;
--(id) MXCreateScanner;
--(void) MXScanInstances;
+
 @end

@@ -6,6 +6,7 @@
 //
 
 #import "Mlex.h"
+#import "Mlex-Swift.h"
 
 @implementation Mlex
 
@@ -21,7 +22,6 @@
 +(void) load {
     [super load];
     
-    dlopen("/System/Library/PrivateFrameworks/Symbolication.framework/Symbolication", RTLD_NOW);
     /*
      int rt = setuid(0); //set root
      if (rt != 0) {
@@ -34,45 +34,76 @@
      */
     
     
-    
     Mlex* mx = [Mlex sharedInstance];
+    mx.MxFoundHeapObjects = [NSMutableDictionary new];
+
     [mx MXCreateWindow];
-    
-    mx.MxFoundHeapObjects = [NSMutableArray new];
-    
-   
-    //dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-        heapFind((void *)&(mx->_MxFoundHeapObjects));
-        NSLog(@"[Mlex] Found %lu objects", mx.MxFoundHeapObjects.count);
-        NSLog(@"[Mlex] FOUNDOBJECTS: %@", mx.MxFoundHeapObjects);
-    //});
     
    
 }
 
 -(void) MXCreateWindow {
-        
-    self.MxWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(400, 400, 1200, 1400) styleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable backing:NSBackingStoreBuffered defer:NO];
-        
-    [self.MxWindow makeKeyAndOrderFront:nil];
+    self.MxWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(400, 400, 1200, 1400)
+                                                styleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
+                     NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable
+                                                  backing:NSBackingStoreBuffered
+                                                    defer:NO];
     
-    self.MxWindow.contentViewController = [NSTabViewController new];
-    self.MxWindow.contentView = [[NSTabView alloc] initWithFrame:NSMakeRect(100, 100, 1000, 1200)];
+    NSViewController *vc = [[NSViewController alloc] init];
+    
+    [self MXScanHeap];
+    
+    NSViewController* svc = [HeapViewSwift createHeapViewController: self.MxFoundHeapObjects];
+    [self.MxWindow setContentViewController:vc];
+    
+    self.MxWindow.contentViewController.view.frame = self.MxWindow.frame;
+    svc.view.frame = self.MxWindow.contentViewController.view.bounds;
+    
+    [self.MxWindow.contentViewController presentViewControllerAsModalWindow:svc];
+    
+    //[self.MxWindow setTitle:@"Mlex"];
+    //[self.MxWindow makeKeyAndOrderFront:nil];
+    
+}
 
-    //heap find tab
-    NSTabViewItem* heapTabViewItem = [NSTabViewItem new];
-    heapTabViewItem.label = @"heap";
+-(void) MXScanHeap{
+    [self.MxFoundHeapObjects removeAllObjects];
     
-    NSView* heapView = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 1000, 1200)];
-    //customize heapView
-    NSScrollView* heapScrollView = [[NSScrollView alloc] initWithFrame:NSMakeRect(0, 0, 1000, 1200)];
-    
-    
-    [heapTabViewItem setView:heapView];
-    [self.MxWindow.contentView addTabViewItem:heapTabViewItem];
-    
+    dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        heapFind((void *)&(self->_MxFoundHeapObjects));
+        NSLog(@"[Mlex] %@", self.MxFoundHeapObjects);
+    });
+}
+
+#pragma mark protocol methods
+
+- (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
+    if ([tableView.identifier isEqualToString: @"Classes"]){
+        return self.MxFoundHeapObjects.allKeys.count;
     }
+    else if ([tableView.identifier isEqualToString: @"Instances"]){
+        return [[self.MxFoundHeapObjects objectForKey:self.MxSelectedClass] count];
+    }
+    return 0;
+}
 
+- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
+    if ([tableView.identifier isEqualToString: @"Classes"]){
+        return [self.MxFoundHeapObjects.allKeys objectAtIndex:row];
+    }
+    else if ([tableView.identifier isEqualToString: @"Instances"]){
+        return [[self.MxFoundHeapObjects objectForKey:self.MxSelectedClass] objectAtIndex:row];
+    }
+    return 0;
+
+}
+
+- (void)tableViewSelectionDidChange:(NSNotification *)notification {
+    NSTableView *tableView = notification.object;
+    if ([tableView.identifier isEqualToString: @"Classes"]){
+        self.MxSelectedClass = [self.MxFoundHeapObjects.allKeys objectAtIndex:tableView.selectedRow];
+    }
+}
 
 
 @end

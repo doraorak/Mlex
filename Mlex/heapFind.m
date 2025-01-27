@@ -21,7 +21,7 @@ static void range_callback(task_t task, void *context, unsigned type, vm_range_t
     
     //NSLog(@"[Mlex] in callback");
     
-    NSMutableArray *resultArray = (__bridge NSMutableArray *)(*(void **)context);
+    NSMutableDictionary *returnDict = (__bridge NSMutableDictionary *)(*(void **)context);
     
     int classCount = 0;
     Class *classes = objc_copyClassList(&classCount);
@@ -51,17 +51,21 @@ static void range_callback(task_t task, void *context, unsigned type, vm_range_t
         #endif
         
         if (CFSetContainsValue(registeredClasses, (__bridge const void *)(tryClass))) {
-            const char* className = class_getName(tryClass);
-            if (className) {
-                // Create a dictionary with the object address and class name.
-                NSDictionary *objectInfo = @{
-                    @"objaddr": @(range.address),
-                    @"classname": @(className)
-                };
-                
-                // Add the dictionary to the result array.
-                [resultArray addObject:objectInfo];
-            }
+            const char *className = class_getName(tryClass);
+                if (className) {
+                    NSString *classNameKey = [NSString stringWithUTF8String:className];
+
+                    // Check if the classNameKey already exists in the dictionary.
+                    NSMutableArray *addressArray = [returnDict objectForKey:classNameKey];
+                    if (!addressArray) {
+                        // Create a new NSMutableArray if it doesn't exist.
+                        addressArray = [NSMutableArray array];
+                        [returnDict setObject:addressArray forKey:classNameKey];
+                    }
+
+                    // Add the range.address to the array.
+                    [addressArray addObject:@(range.address)];
+                }
             
         }
         

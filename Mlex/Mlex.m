@@ -49,20 +49,18 @@
                                                   backing:NSBackingStoreBuffered
                                                     defer:NO];
     
-    NSViewController *vc = [[NSViewController alloc] init];
+    self.MxWindow.contentView = [[NSView alloc] initWithFrame:self.MxWindow.contentViewController.view.frame];
     
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(MXScanHeap) name:@"MxRescanHeapNotification" object:nil];
+
     [self MXScanHeap];
     
-    NSViewController* svc = [HeapViewSwift createHeapViewController: self.MxFoundHeapObjects];
-    [self.MxWindow setContentViewController:vc];
-    
-    self.MxWindow.contentViewController.view.frame = self.MxWindow.frame;
-    svc.view.frame = self.MxWindow.contentViewController.view.bounds;
-    
-    [self.MxWindow.contentViewController presentViewControllerAsModalWindow:svc];
-    
+    // Replace the window's contentView with the NSHostingView
+    NSView *swiftHeapView = [HeapViewSwift createHeapView:self.MxFoundHeapObjects];
+    swiftHeapView.frame = self.MxWindow.contentView.bounds; // Match the frame to the contentView
+    self.MxWindow.contentView = swiftHeapView;
     //[self.MxWindow setTitle:@"Mlex"];
-    //[self.MxWindow makeKeyAndOrderFront:nil];
+    [self.MxWindow makeKeyAndOrderFront:nil];
     
 }
 
@@ -71,7 +69,7 @@
     
     dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
         heapFind((void *)&(self->_MxFoundHeapObjects));
-        NSLog(@"[Mlex] %@", self.MxFoundHeapObjects);
+        //NSLog(@"[Mlex] %@", self.MxFoundHeapObjects);
     });
 }
 

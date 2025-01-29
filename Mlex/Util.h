@@ -6,9 +6,14 @@
 //
 #pragma once
 
-#import "SharedHeader.h"
+#import <mach/mach.h>
+#import <objc/runtime.h>
+#import <Foundation/Foundation.h>
 
-BOOL pointerIsReadable(const void *inPtr) { //stolen from FLEX
+static BOOL pointerIsReadable(const void *inPtr);
+static id objectFromAddressString(NSString *hexAddressString);
+
+static BOOL pointerIsReadable(const void *inPtr) { //stolen from FLEX
     kern_return_t error = KERN_SUCCESS;
     
     vm_size_t vmsize;
@@ -55,3 +60,99 @@ BOOL pointerIsReadable(const void *inPtr) { //stolen from FLEX
 
     return YES;
  }
+
+
+static id objectFromAddressString(NSString *hexAddressString) {
+    // Convert the hex string to a numeric address
+    unsigned long long address = 0;
+    NSScanner *scanner = [NSScanner scannerWithString:hexAddressString];
+    [scanner setScanLocation:2]; // Skip the "0x" prefix
+    [scanner scanHexLongLong:&address];
+    
+    // Cast the address to an Objective-C id
+    id object = (__bridge id)((void *)address);
+    
+    return object;
+}
+
+static NSString* classHierarchyStringForObject(id object) {
+    
+    NSMutableString *description = [NSMutableString string];
+    Class cls = object_getClass(object);
+    
+    while (cls) {
+        [description appendFormat:@"%@   ", NSStringFromClass(cls)];
+        cls = class_getSuperclass(cls);
+    }
+    return description;
+}
+
+static NSArray* classMethodsForObject(id object) {
+    
+    unsigned int count;
+    Method *methods = class_copyMethodList(object_getClass([object class]), &count); //object_GetClass(Class cls) returns the metaclass of the argument
+    NSMutableArray *methodsArray = [NSMutableArray array];
+    
+    for (int i = 0; i < count; i++) {
+        [methodsArray addObject:NSStringFromSelector(method_getName(methods[i]))];
+    }
+    free(methods);
+    
+    return methodsArray;
+}
+
+static NSArray* instanceMethodsForObject(id object) {
+    
+    unsigned int count;
+    Method *methods = class_copyMethodList([object class], &count);
+    NSMutableArray *methodsArray = [NSMutableArray array];
+    
+    for (int i = 0; i < count; i++) {
+        [methodsArray addObject:NSStringFromSelector(method_getName(methods[i]))];
+    }
+    free(methods);
+    
+    return methodsArray;
+}
+
+static NSArray* classPropertiesForObject(id object) {
+    
+    unsigned int count;
+    objc_property_t *properties = class_copyPropertyList(object_getClass([object class]), &count);
+    NSMutableArray *propertiesArray = [NSMutableArray array];
+    
+    for (int i = 0; i < count; i++) {
+        [propertiesArray addObject:[NSString stringWithUTF8String:property_getName(properties[i])]];
+    }
+    free(properties);
+    
+    return propertiesArray;
+}
+
+static NSArray* instancePropertiesForObject(id object) {
+    
+    unsigned int count;
+    objc_property_t *properties = class_copyPropertyList([object class], &count);
+    NSMutableArray *propertiesArray = [NSMutableArray array];
+    
+    for (int i = 0; i < count; i++) {
+        [propertiesArray addObject:[NSString stringWithUTF8String:property_getName(properties[i])]];
+    }
+    free(properties);
+    
+    return propertiesArray;
+}
+
+static NSArray* instanceVariablesForObject(id object) {
+    
+    unsigned int count;
+    Ivar *ivars = class_copyIvarList([object class], &count);
+    NSMutableArray *ivarsArray = [NSMutableArray array];
+    
+    for (int i = 0; i < count; i++) {
+        [ivarsArray addObject:[NSString stringWithUTF8String:ivar_getName(ivars[i])]];
+    }
+    free(ivars);
+    
+    return ivarsArray;
+}

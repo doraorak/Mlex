@@ -15,32 +15,38 @@ struct InstanceDetailView: View {
 
         let obj = objectFromAddressString(addr as String)
         
-        List {
-            Section(header: Text("Class Hierarchy")) {
-                Text(classHierarchyStringForObject(obj))
-            }
+        if obj == nil {
+             AnyView(Text("Invalid object address"))
+        }
+        else {
             
-            Section(header: Text("Class Methods")) {
-                ForEach(classMethodsForObject(obj) as! [String], id: \.self) { method in
-                    Text(method)
+             List {
+                Section(header: Text("Class Hierarchy")) {
+                    Text(classHierarchyStringForObject(obj))
                 }
-            }
-
-            Section(header: Text("Instance Methods")) {
-                ForEach(instanceMethodsForObject(obj) as! [String], id: \.self) { method in
-                    Text(method)
+                
+                Section(header: Text("Class Methods")) {
+                    ForEach(classMethodsForObject(obj) as! [String], id: \.self) { method in
+                        Text(method)
+                    }
                 }
-            }
-            
-            Section(header: Text("Instance Properties")) {
-                ForEach(instancePropertiesForObject(obj) as! [String], id: \.self) { property in
-                    Text(property)
+                
+                Section(header: Text("Instance Methods")) {
+                    ForEach(instanceMethodsForObject(obj) as! [String], id: \.self) { method in
+                        Text(method)
+                    }
                 }
-            }
-
-            Section(header: Text("Instance Variables")) {
-                ForEach(instanceVariablesForObject(obj) as! [String], id: \.self) { ivar in
-                    Text(ivar)
+                
+                Section(header: Text("Instance Properties")) {
+                    ForEach(instancePropertiesForObject(obj) as! [String], id: \.self) { property in
+                        Text(property)
+                    }
+                }
+                
+                Section(header: Text("Instance Variables")) {
+                    ForEach(instanceVariablesForObject(obj) as! [String], id: \.self) { ivar in
+                        Text(ivar)
+                    }
                 }
             }
         }

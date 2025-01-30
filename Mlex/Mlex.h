@@ -7,12 +7,13 @@
 
 #import "SharedHeader.h"
 
-@interface Mlex : NSObject <NSTableViewDataSource>
+@interface Mlex : NSObject
 
 @property(strong, nonatomic, nonnull) NSWindow* MxWindow;
 @property(strong, nonatomic, nonnull) NSMutableDictionary* MxFoundHeapObjects;
-@property(strong, nonatomic, nonnull) NSString* MxSelectedClass;
 
++(instancetype) sharedInstance;
+-(void) MXScanHeap;
 -(void) MXCreateWindow;
 
 

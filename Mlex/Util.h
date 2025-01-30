@@ -63,16 +63,21 @@ static BOOL pointerIsReadable(const void *inPtr) { //stolen from FLEX
 
 
 static id objectFromAddressString(NSString *hexAddressString) {
-    // Convert the hex string to a numeric address
     unsigned long long address = 0;
+    
     NSScanner *scanner = [NSScanner scannerWithString:hexAddressString];
     [scanner setScanLocation:2]; // Skip the "0x" prefix
     [scanner scanHexLongLong:&address];
     
     // Cast the address to an Objective-C id
-    id object = (__bridge id)((void *)address);
+    if(address){
+        id object = (__bridge id)((void *)address);
+        
+        if(object)
+        return object;
+    }
     
-    return object;
+    return nil;
 }
 
 static NSString* classHierarchyStringForObject(id object) {

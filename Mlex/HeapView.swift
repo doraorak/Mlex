@@ -3,20 +3,23 @@ import SwiftUI
 
 struct HeapView: View {
     
-    @State var ds: NSMutableDictionary
+    let mx: Mlex = Mlex.sharedInstance()
+    
     @State var selectedClass: String?
     @State var selectedInstance: String?
-    @State var refreshHack: Bool = false
-    
+    @State private var data: [String: [String]] = [:]
     
     var body: some View {
-        let sds = ds as! Dictionary<String, [String]>
+        
         
         HStack {
-            Button("Refresh") {
-                NotificationCenter.default.post(name: Notification.Name("MxRescanHeapNotification"), object: nil)
+            Button {
+                mx.mxScanHeap()
                 selectedInstance = nil
                 selectedClass = nil
+                data = mx.mxFoundHeapObjects as! [String : [String]]
+            } label: {
+                Text("Refresh");
             }
             Spacer()
         }
@@ -24,14 +27,18 @@ struct HeapView: View {
         HSplitView {
             // Left Column: Classes
             VStack(alignment: .leading) {
-                Text("Classes (\(sds.keys.count))")
+                Text("Classes (\(data.keys.count))")
                     .font(.headline)
                     .padding(.leading)
                 
-                List(Array(sds.keys.sorted()), id: \.self, selection: $selectedClass) { key in
+                List(Array(data.keys.sorted()), id: \.self, selection: $selectedClass) { key in
                     Text(key)
                 }
+                .onChange(of: selectedClass) { _ in
+                    selectedInstance = nil
+                }
                 .frame(minWidth: 150) // Adjust width of the left list
+                
             }
             
             // Middle Column: Instances
@@ -40,7 +47,7 @@ struct HeapView: View {
                     .font(.headline)
                     .padding(.leading)
                 
-                if let selectedClass, let insarr = sds[selectedClass] {
+                if let selectedClass, let insarr = data[selectedClass] {
                     List(insarr.sorted(), id: \.self, selection: $selectedInstance) { ins in
                         Text(ins)
                     }
@@ -67,6 +74,10 @@ struct HeapView: View {
                 }
             }
         }
+        .onAppear {
+            mx.mxScanHeap()
+            data = mx.mxFoundHeapObjects as! [String : [String]]
+        }
         .frame(minWidth: 300, minHeight: 200) // Adjust width and height of the whole view
         .padding()
     }
@@ -77,9 +88,9 @@ struct HeapView: View {
 
 @objc class HeapViewSwift: NSObject {
  
-    @MainActor @objc class func createHeapView(_ ds: NSMutableDictionary) -> NSView {
+    @MainActor @objc class func createHeapView() -> NSView {
         
-        let view = HeapView(ds: ds)
+        let view = HeapView()
        
         return NSHostingView(rootView: view)
     }

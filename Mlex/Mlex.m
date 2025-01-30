@@ -51,57 +51,44 @@
     
     self.MxWindow.contentView = [[NSView alloc] initWithFrame:self.MxWindow.contentViewController.view.frame];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(MXScanHeap) name:@"MxRescanHeapNotification" object:nil];
-
-    [self MXScanHeap];
+    //[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(MXScanHeap:) name:@"MxRescanHeapNotification" object:nil];
     
     // Replace the window's contentView with the NSHostingView
-    NSView *swiftHeapView = [HeapViewSwift createHeapView:self.MxFoundHeapObjects];
+    NSView *swiftHeapView = [HeapViewSwift createHeapView];
     swiftHeapView.frame = self.MxWindow.contentView.bounds; // Match the frame to the contentView
-    self.MxWindow.contentView = swiftHeapView;
+    
+    NSTabView *tabView = [[NSTabView alloc] initWithFrame:self.MxWindow.contentView.bounds];
+    
+    NSTabViewItem *tabViewItemHeap = [[NSTabViewItem alloc] initWithIdentifier:@"Heap"];
+    tabViewItemHeap.label = @"Heap";
+    [tabViewItemHeap setView:swiftHeapView];
+    
+    NSTabViewItem* tabViewItemHome = [[NSTabViewItem alloc] initWithIdentifier:@"Home"];
+    tabViewItemHome.label = @"Home";
+    tabViewItemHome.view = [[NSView alloc] initWithFrame:self.MxWindow.contentView.bounds];
+    
+    [tabView addTabViewItem:tabViewItemHome];
+    [tabView addTabViewItem:tabViewItemHeap];
+    
+    [self.MxWindow setContentView:tabView];
+    
     //[self.MxWindow setTitle:@"Mlex"];
     [self.MxWindow makeKeyAndOrderFront:nil];
     
 }
 
 -(void) MXScanHeap{
+    
     [self.MxFoundHeapObjects removeAllObjects];
     
     dispatch_sync(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
         heapFind((void *)&(self->_MxFoundHeapObjects));
-        //NSLog(@"[Mlex] %@", self.MxFoundHeapObjects);
     });
-}
+
+    }
+
 
 #pragma mark protocol methods
-
-- (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
-    if ([tableView.identifier isEqualToString: @"Classes"]){
-        return self.MxFoundHeapObjects.allKeys.count;
-    }
-    else if ([tableView.identifier isEqualToString: @"Instances"]){
-        return [[self.MxFoundHeapObjects objectForKey:self.MxSelectedClass] count];
-    }
-    return 0;
-}
-
-- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-    if ([tableView.identifier isEqualToString: @"Classes"]){
-        return [self.MxFoundHeapObjects.allKeys objectAtIndex:row];
-    }
-    else if ([tableView.identifier isEqualToString: @"Instances"]){
-        return [[self.MxFoundHeapObjects objectForKey:self.MxSelectedClass] objectAtIndex:row];
-    }
-    return 0;
-
-}
-
-- (void)tableViewSelectionDidChange:(NSNotification *)notification {
-    NSTableView *tableView = notification.object;
-    if ([tableView.identifier isEqualToString: @"Classes"]){
-        self.MxSelectedClass = [self.MxFoundHeapObjects.allKeys objectAtIndex:tableView.selectedRow];
-    }
-}
 
 
 @end

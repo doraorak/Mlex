@@ -34,7 +34,7 @@ struct HeapView: View {
                 List(Array(data.keys.sorted()), id: \.self, selection: $selectedClass) { key in
                     Text(key)
                 }
-                .onChange(of: selectedClass) { _ in
+                .onChange(of: selectedClass) { 
                     selectedInstance = nil
                 }
                 .frame(minWidth: 150) // Adjust width of the left list

@@ -51,28 +51,27 @@
     
     self.MxWindow.contentView = [[NSView alloc] initWithFrame:self.MxWindow.contentViewController.view.frame];
     
-    //[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(MXScanHeap:) name:@"MxRescanHeapNotification" object:nil];
-    
-    // Replace the window's contentView with the NSHostingView
-    NSView *swiftHeapView = [HeapViewSwift createHeapView];
-    swiftHeapView.frame = self.MxWindow.contentView.bounds; // Match the frame to the contentView
     
     NSTabView *tabView = [[NSTabView alloc] initWithFrame:self.MxWindow.contentView.bounds];
     
-    NSTabViewItem *tabViewItemHeap = [[NSTabViewItem alloc] initWithIdentifier:@"Heap"];
-    tabViewItemHeap.label = @"Heap";
-    [tabViewItemHeap setView:swiftHeapView];
     
     NSTabViewItem* tabViewItemHome = [[NSTabViewItem alloc] initWithIdentifier:@"Home"];
     tabViewItemHome.label = @"Home";
     tabViewItemHome.view = [[NSView alloc] initWithFrame:self.MxWindow.contentView.bounds];
+    
+    NSView *swiftHeapView = [HeapViewSwift createHeapView];
+    swiftHeapView.frame = self.MxWindow.contentView.bounds;
+    
+    NSTabViewItem *tabViewItemHeap = [[NSTabViewItem alloc] initWithIdentifier:@"Heap"];
+    tabViewItemHeap.label = @"Heap";
+    [tabViewItemHeap setView:swiftHeapView];
+   
     
     [tabView addTabViewItem:tabViewItemHome];
     [tabView addTabViewItem:tabViewItemHeap];
     
     [self.MxWindow setContentView:tabView];
     
-    //[self.MxWindow setTitle:@"Mlex"];
     [self.MxWindow makeKeyAndOrderFront:nil];
     
 }

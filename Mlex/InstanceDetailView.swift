@@ -39,7 +39,7 @@ struct InstanceDetailView: View {
                 
                 Section(header: Text("Instance Properties")) {
                     ForEach(instancePropertiesForObject(obj) as! [String], id: \.self) { property in
-                        Text(property)
+                        Text("\(property): ")
                     }
                 }
                 

@@ -248,10 +248,7 @@
 		14002F6A2D44E1AE000BB21B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					"$(ARCHS_STANDARD)",
-					arm64e,
-				);
+				ARCHS = arm64e;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 3FC7C2PF4P;
@@ -269,10 +266,7 @@
 		14002F6B2D44E1AE000BB21B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = (
-					"$(ARCHS_STANDARD)",
-					arm64e,
-				);
+				ARCHS = arm64e;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 3FC7C2PF4P;

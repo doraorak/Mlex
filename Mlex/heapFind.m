@@ -22,7 +22,7 @@ static void range_callback(task_t task, void *context, unsigned type, vm_range_t
     NSMutableDictionary *returnDict = (__bridge NSMutableDictionary *)(*(void **)context);
     
     int classCount = 0;
-    Class *classes = objc_copyClassList(&classCount);
+    Class *classes = objc_copyClassList((unsigned int *)&classCount);
     
     CFMutableSetRef registeredClasses = CFSetCreateMutable(NULL, 0, NULL);
     for (unsigned int i = 0; i < classCount; i++) {

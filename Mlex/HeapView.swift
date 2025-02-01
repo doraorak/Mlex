@@ -17,6 +17,8 @@ struct HeapView: View {
                 mx.mxScanHeap()
                 selectedInstance = nil
                 selectedClass = nil
+                print("mlex dealloclist: \(mx.mxDeallocatedObjects)")
+                mx.mxDeallocatedObjects.removeAllObjects()
                 data = mx.mxFoundHeapObjects as! [String : [String]]
             } label: {
                 Text("Refresh");
@@ -34,7 +36,7 @@ struct HeapView: View {
                 List(Array(data.keys.sorted()), id: \.self, selection: $selectedClass) { key in
                     Text(key)
                 }
-                .onChange(of: selectedClass) { 
+                .onChange(of: selectedClass) {
                     selectedInstance = nil
                 }
                 .frame(minWidth: 150) // Adjust width of the left list
@@ -76,6 +78,7 @@ struct HeapView: View {
         }
         .onAppear {
             mx.mxScanHeap()
+            mx.mxDeallocatedObjects.removeAllObjects()
             data = mx.mxFoundHeapObjects as! [String : [String]]
         }
         .frame(minWidth: 300, minHeight: 200) // Adjust width and height of the whole view

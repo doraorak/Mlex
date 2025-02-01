@@ -6,6 +6,8 @@
 //
 #pragma once
 
+#import "Mlex.h"
+
 #import <mach/mach.h>
 #import <objc/runtime.h>
 #import <Foundation/Foundation.h>
@@ -240,18 +242,21 @@ static id objectFromAddressString(NSString *hexAddressString) {
     [scanner setScanLocation:2]; // Skip the "0x" prefix
     [scanner scanHexLongLong:&address];
     
-    // Cast the address to an Objective-C id
-    if(pointerIsValidObjcObject((void*)address)){
-
-        #if __arm64e__
-        address = (unsigned long long)ptrauth_strip((void *)address, ptrauth_key_function_pointer);
-        #endif
-
-        id __unsafe_unretained object = (__bridge id)((void *)address);
+    if (![[Mlex sharedInstance].MxDeallocatedObjects containsObject:hexAddressString]) {
         
-        if(object)
-        return object;
+        
+        if(pointerIsValidObjcObject((void*)address)){
+        
+        // Cast the address to an Objective-C id
+        #if __arm64e__
+            address = (unsigned long long)ptrauth_strip((void *)address, ptrauth_key_function_pointer);
+        #endif
+            
+            id __unsafe_unretained object = (__bridge id)((void *)address);
+            
+            if(object)
+                return object;
+        }
     }
-    
     return nil;
 }

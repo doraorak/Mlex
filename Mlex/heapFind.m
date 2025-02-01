@@ -5,6 +5,7 @@
 //  Created by Dora Orak on 26.01.2025.
 //
 #import "SharedHeader.h"
+#import "Util.h"
 
 static kern_return_t reader(__unused task_t remote_task, vm_address_t remote_address,  vm_size_t size, void **local_memory) {
     *local_memory = (void *)remote_address;
@@ -62,7 +63,7 @@ static void range_callback(task_t task, void *context, unsigned type, vm_range_t
                     }
 
                     // Add the range.address to the array.
-                    [addressArray addObject:[NSString stringWithFormat:@"0x%lX", range.address]];
+                    [addressArray addObject:[[[NSString stringWithFormat:@"0x%lX", range.address] uppercaseString] stringByReplacingCharactersInRange:NSMakeRange(1,1) withString:@"x"]];
                 }
             
         }

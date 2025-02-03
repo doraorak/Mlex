@@ -20,25 +20,11 @@
 }
 
 +(void) load {
-    [super load];
-    
-    /*
-     int rt = setuid(0); //set root
-     if (rt != 0) {
-     NSLog(@"[Mlex] Failed to set root");
-     }
-     else {
-     NSLog(@"[Mlex] Root set");
-     NSLog(@"[Mlex] uid: %d", getuid());
-     }
-     */
-    
     
     Mlex* mx = [Mlex sharedInstance];
     mx.MxFoundHeapObjects = [NSMutableDictionary new];
 
     [mx MXCreateWindow];
-    
    
 }
 

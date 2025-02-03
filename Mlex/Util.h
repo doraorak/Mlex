@@ -193,9 +193,6 @@ static BOOL pointerIsValidObjcObject(const void *ptr) {
         return NO;
     }
 
-    if(!ptr){
-        return NO;
-    }
     // Make sure dereferencing this address won't crash
     if (!pointerIsReadable(ptr)) {
         return NO;
@@ -204,6 +201,7 @@ static BOOL pointerIsValidObjcObject(const void *ptr) {
     // http://www.sealiesoftware.com/blog/archive/2013/09/24/objc_explain_Non-pointer_isa.html
     // We check if the returned class is readable because object_getClass
     // can return a garbage value when given a non-nil pointer to a non-object
+    [(__bridge id)ptr description];
     Class cls = object_getClass((__bridge id)ptr);
     if (!cls || !pointerIsReadable((__bridge void *)cls)) {
         return NO;

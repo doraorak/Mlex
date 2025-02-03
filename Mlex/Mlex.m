@@ -44,7 +44,7 @@
                 if(mx.MxDeallocatedObjects){
                     
                     @synchronized(mx.MxDeallocatedObjects) {
-                        [mx.MxDeallocatedObjects addObject:[[address uppercaseString] stringByReplacingCharactersInRange:NSMakeRange(1,1) withString:@"x"] ];
+                        [mx.MxDeallocatedObjects addObject:[address uppercaseString]];
                     }
                 }
             }

@@ -63,7 +63,7 @@ static void range_callback(task_t task, void *context, unsigned type, vm_range_t
                     }
 
                     // Add the range.address to the array.
-                    [addressArray addObject:[[[NSString stringWithFormat:@"0x%lX", range.address] uppercaseString] stringByReplacingCharactersInRange:NSMakeRange(1,1) withString:@"x"]];
+                    [addressArray addObject:[NSString stringWithFormat:@"0x%lX", range.address]];
                 }
             
         }

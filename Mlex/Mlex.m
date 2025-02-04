@@ -22,10 +22,9 @@
 +(void) load {
     
     Mlex* mx = [Mlex sharedInstance];
+    
     mx.MxFoundHeapObjects = [NSMutableDictionary new];
-
     [mx MXCreateWindow];
-   
 }
 
 -(void) MXCreateWindow {

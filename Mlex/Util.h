@@ -11,6 +11,10 @@
 #import <Foundation/Foundation.h>
 #import <malloc/malloc.h>
 
+typedef struct {
+    Class isa;
+} maybe_id;
+
 static NSString* classHierarchyStringForObject(id object) {
     
     NSMutableString *description = [NSMutableString string];
@@ -196,7 +200,14 @@ static BOOL pointerIsValidObjcObject(const void *ptr) {
     if (!pointerIsReadable(ptr)) {
         return NO;
     }
-
+    
+    extern uint64_t objc_debug_isa_magic_mask WEAK_IMPORT_ATTRIBUTE;
+    extern uint64_t objc_debug_isa_magic_value WEAK_IMPORT_ATTRIBUTE;
+    
+    if (!((((uint64_t)(((maybe_id*)ptr)->isa)) & objc_debug_isa_magic_mask) == objc_debug_isa_magic_value)) {
+        return NO;
+    }
+    
     // http://www.sealiesoftware.com/blog/archive/2013/09/24/objc_explain_Non-pointer_isa.html
     // We check if the returned class is readable because object_getClass
     // can return a garbage value when given a non-nil pointer to a non-object

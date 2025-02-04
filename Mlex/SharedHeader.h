@@ -18,10 +18,6 @@
 
 void heapFind(void* ptr);
 
-typedef struct {
-    Class isa;
-} maybe_id;
-
 
 
 

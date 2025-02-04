@@ -40,20 +40,25 @@ static void range_callback(task_t task, void *context, unsigned type, vm_range_t
         maybe_id *tryObject = (maybe_id *)range.address;
         Class tryClass = NULL;
         
-        #if __arm64e__
+        extern uint64_t objc_debug_isa_magic_mask WEAK_IMPORT_ATTRIBUTE;
+        extern uint64_t objc_debug_isa_magic_value WEAK_IMPORT_ATTRIBUTE;
         
-        extern uint64_t objc_debug_isa_class_mask WEAK_IMPORT_ATTRIBUTE;
-        tryClass = (__bridge Class)((void *)((uint64_t)tryObject->isa & objc_debug_isa_class_mask));
-        
-        #else
-                tryClass = tryObject->isa;
-        #endif
-        
-        if (CFSetContainsValue(registeredClasses, (__bridge const void *)(tryClass))) {
-            const char *className = class_getName(tryClass);
+        if (((uint64_t)tryObject->isa & objc_debug_isa_magic_mask) == objc_debug_isa_magic_value) {
+            
+#if __arm64e__
+            
+            extern uint64_t objc_debug_isa_class_mask WEAK_IMPORT_ATTRIBUTE;
+            tryClass = (__bridge Class)((void *)((uint64_t)tryObject->isa & objc_debug_isa_class_mask));
+            
+#else
+            tryClass = tryObject->isa;
+#endif
+            
+            if (CFSetContainsValue(registeredClasses, (__bridge const void *)(tryClass))) {
+                const char *className = class_getName(tryClass);
                 if (className) {
                     NSString *classNameKey = [NSString stringWithUTF8String:className];
-
+                    
                     // Check if the classNameKey already exists in the dictionary.
                     NSMutableArray *addressArray = [returnDict objectForKey:classNameKey];
                     if (!addressArray) {
@@ -61,13 +66,13 @@ static void range_callback(task_t task, void *context, unsigned type, vm_range_t
                         addressArray = [NSMutableArray array];
                         [returnDict setObject:addressArray forKey:classNameKey];
                     }
-
+                    
                     // Add the range.address to the array.
                     [addressArray addObject:[NSString stringWithFormat:@"0x%lX", range.address]];
                 }
-            
+                
+            }
         }
-        
         
     }
      

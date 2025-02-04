@@ -6,8 +6,6 @@
 //
 #pragma once
 
-#import "Mlex.h"
-
 #import <mach/mach.h>
 #import <objc/runtime.h>
 #import <Foundation/Foundation.h>
@@ -152,6 +150,7 @@ static BOOL pointerIsReadable(const void *inPtr) { //stolen from FLEX
     return YES;
  }
 
+//FIXME: non portable
 static BOOL isTaggedPointer(const void *ptr) {
     return ((uintptr_t)ptr & (1UL<<63)) == (1UL<<63);
 }
@@ -201,7 +200,6 @@ static BOOL pointerIsValidObjcObject(const void *ptr) {
     // http://www.sealiesoftware.com/blog/archive/2013/09/24/objc_explain_Non-pointer_isa.html
     // We check if the returned class is readable because object_getClass
     // can return a garbage value when given a non-nil pointer to a non-object
-    [(__bridge id)ptr description];
     Class cls = object_getClass((__bridge id)ptr);
     if (!cls || !pointerIsReadable((__bridge void *)cls)) {
         return NO;
@@ -239,9 +237,7 @@ static id objectFromAddressString(NSString *hexAddressString) {
     NSScanner *scanner = [NSScanner scannerWithString:hexAddressString];
     [scanner setScanLocation:2]; // Skip the "0x" prefix
     [scanner scanHexLongLong:&address];
-    
-    if (![[Mlex sharedInstance].MxDeallocatedObjects containsObject:hexAddressString]) {
-        
+            
         
         if(pointerIsValidObjcObject((void*)address)){
         
@@ -255,6 +251,6 @@ static id objectFromAddressString(NSString *hexAddressString) {
             if(object)
                 return object;
         }
-    }
+    
     return nil;
 }

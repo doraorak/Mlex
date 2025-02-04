@@ -17,8 +17,6 @@ struct HeapView: View {
                 mx.mxScanHeap()
                 selectedInstance = nil
                 selectedClass = nil
-                print("mlex dealloclist: \(mx.mxDeallocatedObjects)")
-                mx.mxDeallocatedObjects.removeAllObjects()
                 data = mx.mxFoundHeapObjects as! [String : [String]]
             } label: {
                 Text("Refresh");
@@ -78,7 +76,6 @@ struct HeapView: View {
         }
         .onAppear {
             mx.mxScanHeap()
-            mx.mxDeallocatedObjects.removeAllObjects()
             data = mx.mxFoundHeapObjects as! [String : [String]]
         }
         .frame(minWidth: 300, minHeight: 200) // Adjust width and height of the whole view

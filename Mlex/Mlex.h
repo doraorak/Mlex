@@ -13,8 +13,6 @@
 
 @property(strong, nonatomic, nonnull) NSWindow* MxWindow;
 @property(strong, nonatomic, nonnull) NSMutableDictionary* MxFoundHeapObjects;
-@property(strong, nonatomic, nonnull) NSMutableArray* MxDeallocatedObjects;
-
 
 +(instancetype) sharedInstance;
 -(void) MXScanHeap;

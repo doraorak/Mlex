@@ -20,45 +20,12 @@
 }
 
 +(void) load {
+    
     Mlex* mx = [Mlex sharedInstance];
+    
     mx.MxFoundHeapObjects = [NSMutableDictionary new];
-    mx.MxDeallocatedObjects = [NSMutableArray new];
-    
-    Method deallocMethod = class_getInstanceMethod([NSObject class], NSSelectorFromString(@"dealloc"));
-    IMP originalDealloc = method_getImplementation(deallocMethod);
-    
-    IMP newDealloc = imp_implementationWithBlock(^(__unsafe_unretained id self) {
-        NSMutableString *address = @"";
-        
-        if(self){
-            address = [NSString stringWithFormat:@"%p", (void *)self];
-        }
-        
-        // Ensure we call the original dealloc properly
-        if (originalDealloc) {
-            ((void (*)(id, SEL))originalDealloc)(self, NSSelectorFromString(@"dealloc"));
-        }
-        
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-            if(mx){
-                if(mx.MxDeallocatedObjects){
-                    
-                    @synchronized(mx.MxDeallocatedObjects) {
-                        [mx.MxDeallocatedObjects addObject:[address uppercaseString]];
-                    }
-                }
-            }
-        });
-        
-        
-
-    });
-    
-    method_setImplementation(deallocMethod, newDealloc);
-
     [mx MXCreateWindow];
     
-   
 }
 
 -(void) MXCreateWindow {

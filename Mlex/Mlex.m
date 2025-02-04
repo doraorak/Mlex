@@ -25,7 +25,6 @@
     
     mx.MxFoundHeapObjects = [NSMutableDictionary new];
     [mx MXCreateWindow];
-    
 }
 
 -(void) MXCreateWindow {

@@ -17,9 +17,7 @@ static void range_callback(task_t task, void *context, unsigned type, vm_range_t
     if (!context) {
         return;
     }
-    
-    //NSLog(@"[Mlex] in callback");
-    
+        
     NSMutableDictionary *returnDict = (__bridge NSMutableDictionary *)(*(void **)context);
     
     int classCount = 0;

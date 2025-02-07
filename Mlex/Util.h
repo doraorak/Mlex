@@ -12,8 +12,12 @@
 #import <malloc/malloc.h>
 
 typedef struct {
-    Class isa;
+    Class _Nonnull isa;
 } maybe_id;
+
+
+
+#pragma mark object utilities
 
 static NSString* classHierarchyStringForObject(id object) {
     
@@ -83,7 +87,7 @@ static NSArray* instancePropertiesForObject(id object) {
     return propertiesArray;
 }
 
-static NSString* propertyValueForObject(id object, NSString *property) {
+static id propertyValueForObject(id object, NSString *property) {
     if ([object respondsToSelector:(NSSelectorFromString(property))]){
         return [object valueForKey:property];
     }
@@ -103,8 +107,6 @@ static NSArray* instanceVariablesForObject(id object) {
     
     return ivarsArray;
 }
-
-#pragma mark - Object from address
 
 static BOOL pointerIsReadable(const void *inPtr) { //stolen from FLEX
     kern_return_t error = KERN_SUCCESS;
@@ -143,11 +145,20 @@ static BOOL pointerIsReadable(const void *inPtr) { //stolen from FLEX
 #endif
     
     // Read the memory
+    mach_vm_size_t machsize = 1;
+        char dummy;
+        if (mach_vm_read_overwrite(mach_task_self(), address, machsize, (mach_vm_address_t)&dummy, &machsize) != KERN_SUCCESS) {
+            NSLog(@"[mlex] Failed to read memory for: %p", address);
+            return NO;
+        }
+    
+    
     vm_size_t size = 0;
     char buf[sizeof(uintptr_t)];
     error = vm_read_overwrite(mach_task_self(), address, sizeof(uintptr_t), (vm_address_t)buf, &size);
     if (error != KERN_SUCCESS) {
         // vm_read_overwrite returned an error
+        NSLog(@"[mlex] Failed to read vm memory for: %p", address);
         return NO;
     }
 
@@ -162,106 +173,4 @@ static BOOL isTaggedPointer(const void *ptr) {
 
 static BOOL isExtTaggedPointer(const void *ptr) {
     return ((uintptr_t)ptr & (0xfUL<<60)) == (0xfUL<<60);
-}
-    
-
-static BOOL pointerIsValidObjcObject(const void *ptr) {
-    
-#if __arm64e__
-    ptr = ptrauth_strip(ptr, ptrauth_key_function_pointer);
-#endif
-    
-    uintptr_t pointer = (uintptr_t)ptr;
-
-    if (!ptr) {
-        return NO;
-    }
-
-    // Tagged pointers have 0x1 set, no other valid pointers do
-    // objc-internal.h -> _objc_isTaggedPointer()
-    if (isTaggedPointer(ptr) || isExtTaggedPointer(ptr)) {
-        return YES;
-    }
-
-    // Check pointer alignment
-    if ((pointer % sizeof(uintptr_t)) != 0) {
-        return NO;
-    }
-
-    // From LLDB:
-    // Pointers in a class_t will only have bits 0 through 46 set,
-    // so if any pointer has bits 47 through 63 high, we know that this is not a valid isa
-    // https://llvm.org/svn/llvm-project/lldb/trunk/examples/summaries/cocoa/objc_runtime.py
-    if ((pointer & 0xFFFF800000000000) != 0) {
-        return NO;
-    }
-
-    // Make sure dereferencing this address won't crash
-    if (!pointerIsReadable(ptr)) {
-        return NO;
-    }
-    
-    extern uint64_t objc_debug_isa_magic_mask WEAK_IMPORT_ATTRIBUTE;
-    extern uint64_t objc_debug_isa_magic_value WEAK_IMPORT_ATTRIBUTE;
-    
-    if (!((((uint64_t)(((maybe_id*)ptr)->isa)) & objc_debug_isa_magic_mask) == objc_debug_isa_magic_value)) {
-        return NO;
-    }
-    
-    // http://www.sealiesoftware.com/blog/archive/2013/09/24/objc_explain_Non-pointer_isa.html
-    // We check if the returned class is readable because object_getClass
-    // can return a garbage value when given a non-nil pointer to a non-object
-    Class cls = object_getClass((__bridge id)ptr);
-    if (!cls || !pointerIsReadable((__bridge void *)cls)) {
-        return NO;
-    }
-    
-    // Just because this pointer is readable doesn't mean whatever is at
-    // it's ISA offset is readable. We need to do the same checks on it's ISA.
-    // Even this isn't perfect, because once we call object_isClass, we're
-    // going to dereference a member of the metaclass, which may or may not
-    // be readable itself. For the time being there is no way to access it
-    // to check here, and I have yet to hard-code a solution.
-    Class metaclass = object_getClass(cls);
-    if (!metaclass || !pointerIsReadable((__bridge void *)metaclass)) {
-        return NO;
-    }
-    
-    // Does the class pointer we got appear as a class to the runtime?
-    if (!object_isClass(cls)) {
-        return NO;
-    }
-    
-    // Is the allocation size at least as large as the expected instance size?
-    ssize_t instanceSize = class_getInstanceSize(cls);
-    if (malloc_size(ptr) < instanceSize) {
-        return NO;
-    }
-
-    return YES;
-}
-
-
-static id objectFromAddressString(NSString *hexAddressString) {
-    unsigned long long address = 0;
-    
-    NSScanner *scanner = [NSScanner scannerWithString:hexAddressString];
-    [scanner setScanLocation:2]; // Skip the "0x" prefix
-    [scanner scanHexLongLong:&address];
-            
-        
-        if(pointerIsValidObjcObject((void*)address)){
-        
-        // Cast the address to an Objective-C id
-        #if __arm64e__
-            address = (unsigned long long)ptrauth_strip((void *)address, ptrauth_key_function_pointer);
-        #endif
-            
-            id __unsafe_unretained object = (__bridge id)((void *)address);
-            
-            if(object)
-                return object;
-        }
-    
-    return nil;
 }

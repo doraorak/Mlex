@@ -17,8 +17,8 @@
 #import <malloc/malloc.h>
 
 void heapFind(void* ptr);
-
-
+BOOL pointerIsValidObjcObject(const void *ptr);
+id objectFromAddressString(NSString *hexAddressString);
 
 
 

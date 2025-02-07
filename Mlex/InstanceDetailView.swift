@@ -10,16 +10,25 @@ import SwiftUI
 struct InstanceDetailView: View {
 
     let addr: NSString
+    @Binding var selcls: String?
     
     var body: some View {
 
         let obj = objectFromAddressString(addr as String)
         
         if obj == nil {
-             AnyView(Text("Invalid object address"))
+             Text("Invalid object address")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .foregroundColor(.red)
         }
         else {
-            
+            if let realcls = String(utf8String:class_getName(object_getClass(obj))) {
+                if realcls != selcls {
+                    Text("object address reused")
+                        .frame(maxWidth: .infinity, maxHeight: 50)
+                        .foregroundColor(.red)
+                }
+            }
              List {
                 Section(header: Text("Class Hierarchy")) {
                     Text(classHierarchyStringForObject(obj))
@@ -38,8 +47,12 @@ struct InstanceDetailView: View {
                 }
                 
                 Section(header: Text("Instance Properties")) {
-                    ForEach(instancePropertiesForObject(obj) as! [String], id: \.self) { property in
-                        Text("\(property): ")
+                    ForEach(instancePropertiesForObject(obj) as! [String], id: \.self) {property in
+                        HStack{
+                            Text("\(property): ")
+                            Spacer()
+                            Text(String(describing: propertyValueForObject(obj, property)))
+                        }
                     }
                 }
                 

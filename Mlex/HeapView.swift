@@ -66,7 +66,7 @@ struct HeapView: View {
                     .padding(.leading)
                 
                 if let selectedInstance {
-                    InstanceDetailView(addr: selectedInstance as NSString)
+                    InstanceDetailView(addr: selectedInstance as NSString, selcls: $selectedClass)
                 } else {
                     Text("Select an instance")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -8,7 +8,8 @@ struct HeapView: View {
     @State var selectedClass: String?
     @State var selectedInstance: String?
     @State private var data: [String: [String]] = [:]
-    
+    @State private var searchText: String = ""
+
     var body: some View {
         
         
@@ -21,13 +22,20 @@ struct HeapView: View {
             } label: {
                 Text("Refresh");
             }
+            
             Spacer()
+            
+            TextField("search", text: $searchText)
+                .monospaced()
+                .frame(maxWidth:200)
+                .textFieldStyle(.roundedBorder)
         }
         
         HSplitView {
             // Left Column: Classes
             VStack(alignment: .leading) {
                 Text("Classes (\(data.keys.count))")
+                    .monospaced()
                     .font(.headline)
                     .padding(.leading)
                 
@@ -44,6 +52,7 @@ struct HeapView: View {
             // Middle Column: Instances
             VStack(alignment: .leading) {
                 Text("Instances")
+                    .monospaced()
                     .font(.headline)
                     .padding(.leading)
                 
@@ -54,6 +63,7 @@ struct HeapView: View {
                     .navigationTitle(selectedClass)
                 } else {
                     Text("Select a class")
+                        .monospaced()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .foregroundColor(.gray)
                 }
@@ -62,6 +72,7 @@ struct HeapView: View {
             // Right Column: Instance Details
             VStack(alignment: .leading) {
                 Text("Details")
+                    .monospaced()
                     .font(.headline)
                     .padding(.leading)
                 
@@ -69,10 +80,12 @@ struct HeapView: View {
                     InstanceDetailView(addr: selectedInstance as NSString, selcls: $selectedClass)
                 } else {
                     Text("Select an instance")
+                        .monospaced()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .foregroundColor(.gray)
                 }
             }
+            .frame(minWidth: 250)
         }
         .onAppear {
             mx.mxScanHeap()

@@ -8,6 +8,7 @@
 
 #import <mach/mach.h>
 #import <objc/runtime.h>
+#import <objc/message.h>
 #import <Foundation/Foundation.h>
 #import <malloc/malloc.h>
 
@@ -19,22 +20,22 @@ typedef struct {
 
 #pragma mark object utilities
 
-static NSString* classHierarchyStringForObject(id object) {
+static NSArray* _Nullable classHierarchyForCls(Class _Nullable cls) {
     
-    NSMutableString *description = [NSMutableString string];
-    Class cls = object_getClass(object);
+    NSMutableArray* classHierarchy = [NSMutableArray array];
     
     while (cls) {
-        [description appendFormat:@"%@   ", NSStringFromClass(cls)];
-        cls = class_getSuperclass(cls);
+        [classHierarchy addObject:NSStringFromClass(cls)];
+        cls = [cls superclass];
     }
-    return description;
+    
+    return classHierarchy;
 }
 
-static NSArray* classMethodsForObject(id object) {
+static NSArray* _Nullable classMethodsForCls(Class _Nullable cls) {
     
     unsigned int count;
-    Method *methods = class_copyMethodList(object_getClass([object class]), &count); //object_GetClass(Class cls) returns the metaclass of the argument
+    Method *methods = class_copyMethodList(object_getClass(cls), &count); //object_GetClass(Class cls) returns the metaclass of the argument
     NSMutableArray *methodsArray = [NSMutableArray array];
     
     for (int i = 0; i < count; i++) {
@@ -45,10 +46,10 @@ static NSArray* classMethodsForObject(id object) {
     return methodsArray;
 }
 
-static NSArray* instanceMethodsForObject(id object) {
+static NSArray* _Nullable instanceMethodsForCls(Class _Nullable cls) {
     
     unsigned int count;
-    Method *methods = class_copyMethodList([object class], &count);
+    Method *methods = class_copyMethodList(cls, &count);
     NSMutableArray *methodsArray = [NSMutableArray array];
     
     for (int i = 0; i < count; i++) {
@@ -59,10 +60,10 @@ static NSArray* instanceMethodsForObject(id object) {
     return methodsArray;
 }
 
-static NSArray* classPropertiesForObject(id object) {
+static NSArray* _Nullable classPropertiesForCls(Class _Nullable cls) {
     
     unsigned int count;
-    objc_property_t *properties = class_copyPropertyList(object_getClass([object class]), &count);
+    objc_property_t *properties = class_copyPropertyList(object_getClass(cls), &count);
     NSMutableArray *propertiesArray = [NSMutableArray array];
     
     for (int i = 0; i < count; i++) {
@@ -73,10 +74,10 @@ static NSArray* classPropertiesForObject(id object) {
     return propertiesArray;
 }
 
-static NSArray* instancePropertiesForObject(id object) {
+static NSArray* _Nullable instancePropertiesForCls(Class _Nullable cls) {
     
     unsigned int count;
-    objc_property_t *properties = class_copyPropertyList([object class], &count);
+    objc_property_t *properties = class_copyPropertyList(cls, &count);
     NSMutableArray *propertiesArray = [NSMutableArray array];
     
     for (int i = 0; i < count; i++) {
@@ -87,17 +88,24 @@ static NSArray* instancePropertiesForObject(id object) {
     return propertiesArray;
 }
 
-static id propertyValueForObject(id object, NSString *property) {
-    if ([object respondsToSelector:(NSSelectorFromString(property))]){
-        return [object valueForKey:property];
+static id _Nullable propertyValueForObject(id _Nullable object, NSString* _Nullable property) {
+    SEL selector = NSSelectorFromString(property);
+    if ([object respondsToSelector:selector]) {
+        @try {
+            return [object valueForKey:property];
+        }
+        @catch (NSException *exception) {
+            NSLog(@"[mlex] kvo Exception: %@", exception);
+            return nil;
+        }
     }
     return nil;
 }
 
-static NSArray* instanceVariablesForObject(id object) {
+static NSArray* _Nullable instanceVariablesForCls(Class _Nullable cls) {
     
     unsigned int count;
-    Ivar *ivars = class_copyIvarList([object class], &count);
+    Ivar *ivars = class_copyIvarList(cls, &count);
     NSMutableArray *ivarsArray = [NSMutableArray array];
     
     for (int i = 0; i < count; i++) {
@@ -108,7 +116,7 @@ static NSArray* instanceVariablesForObject(id object) {
     return ivarsArray;
 }
 
-static BOOL pointerIsReadable(const void *inPtr) { //stolen from FLEX
+static BOOL pointerIsReadable(const void* _Nullable inPtr) { //stolen from FLEX
     kern_return_t error = KERN_SUCCESS;
     
     vm_size_t vmsize;
@@ -148,7 +156,7 @@ static BOOL pointerIsReadable(const void *inPtr) { //stolen from FLEX
     mach_vm_size_t machsize = 1;
         char dummy;
         if (mach_vm_read_overwrite(mach_task_self(), address, machsize, (mach_vm_address_t)&dummy, &machsize) != KERN_SUCCESS) {
-            NSLog(@"[mlex] Failed to read memory for: %p", address);
+            NSLog(@"[mlex] Failed to read memory for: %p", (void*)address);
             return NO;
         }
     
@@ -158,7 +166,7 @@ static BOOL pointerIsReadable(const void *inPtr) { //stolen from FLEX
     error = vm_read_overwrite(mach_task_self(), address, sizeof(uintptr_t), (vm_address_t)buf, &size);
     if (error != KERN_SUCCESS) {
         // vm_read_overwrite returned an error
-        NSLog(@"[mlex] Failed to read vm memory for: %p", address);
+        NSLog(@"[mlex] Failed to read vm memory for: %p", (void*)address);
         return NO;
     }
 
@@ -166,11 +174,11 @@ static BOOL pointerIsReadable(const void *inPtr) { //stolen from FLEX
  }
 
 //FIXME: non portable
-static BOOL isTaggedPointer(const void *ptr) {
+static BOOL isTaggedPointer(const void* _Nullable ptr) {
     return ((uintptr_t)ptr & (1UL<<63)) == (1UL<<63);
 }
 
 
-static BOOL isExtTaggedPointer(const void *ptr) {
+static BOOL isExtTaggedPointer(const void* _Nullable ptr) {
     return ((uintptr_t)ptr & (0xfUL<<60)) == (0xfUL<<60);
 }

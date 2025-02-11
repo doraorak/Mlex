@@ -20,7 +20,8 @@ struct HeapView: View {
                 selectedClass = nil
                 data = mx.mxFoundHeapObjects as! [String : [String]]
             } label: {
-                Text("Refresh");
+                Text("Refresh")
+                    .monospaced()
             }
             
             Spacer()

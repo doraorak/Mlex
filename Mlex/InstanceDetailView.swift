@@ -14,7 +14,7 @@ struct InstanceDetailView: View {
     @Binding var selcls: String?
     
     @State var selectedClsScope: String = ""
-    
+    @State private var hasAppeared = false
     
     var body: some View {
 
@@ -51,8 +51,10 @@ struct InstanceDetailView: View {
                                  
                              }
                          }
-                         .pickerStyle(MenuPickerStyle()) // Optional UI tweak
-                         .onAppear {
+                         .pickerStyle(MenuPickerStyle())
+                         .onAppear{
+                             guard !hasAppeared else { return }
+                             hasAppeared = true
                              let first = clsHierarchy.first
                              selectedClsScope = first!
                          }
@@ -65,23 +67,57 @@ struct InstanceDetailView: View {
                  
                 Section(header: Text("Class Methods")) {
                     ForEach(classMethodsForCls(NSClassFromString(selectedClsScope)) as! [String], id: \.self) { method in
-                        Text(method)
-                            .monospaced()
-
+                        HStack{
+                            Text(method)
+                                .monospaced()
+                            
+                            Spacer()
+                            
+                            VStack{
+                                if let typenc = method_getTypeEncoding(class_getClassMethod(NSClassFromString(selectedClsScope) , NSSelectorFromString(method))!) {
+                                    Text("retval: \(typenc_getReturnType(typenc) ?? "nil")")
+                                        .monospaced()
+                                    Text("args: \(typenc_getArgumentTypes(typenc) ?? ["nil"])")
+                                        .monospaced()
+                                }
+                                else{
+                                    Text("error")
+                                }
+                                
+                                
+                            }
+                        }
                     }
                 }
                 
                 Section(header: Text("Instance Methods")) {
                     ForEach(instanceMethodsForCls(NSClassFromString(selectedClsScope)) as! [String], id: \.self) { method in
-                        Text(method)
-                            .monospaced()
+                        HStack{
+                            Text(method)
+                                .monospaced()
+                            
+                            Spacer()
+                            
+                            VStack{
+                                if let typenc = method_getTypeEncoding(class_getInstanceMethod(NSClassFromString(selectedClsScope) , NSSelectorFromString(method))!) {
+                                    Text("retval: \(typenc_getReturnType(typenc) ?? "nil")")
+                                        .monospaced()
+                                    Text("args: \(typenc_getArgumentTypes(typenc) ?? ["nil"])")
+                                        .monospaced()
+                                }
+                                else{
+                                    Text("error")
+                                }
+                                
+                                
+                            }
+                        }
 
                     }
                 }
                 
                  Section(header: Text("Instance Properties")) {
-                     ForEach(instancePropertiesForCls(NSClassFromString(selectedClsScope)) as! [String], id: \.self) {property in
-                         HStack{
+                     ForEach(Array(Set(instancePropertiesForCls(NSClassFromString(selectedClsScope)) as! [String])), id: \.self) { property in                         HStack{
                              Text(property)
                                  .monospaced()
 
@@ -89,7 +125,7 @@ struct InstanceDetailView: View {
                              
                              let propertyValue = propertyValueForObject(obj!, property)
                             
-                             Text(String(describing: propertyValue).dropFirst(9).dropLast(1))
+                             Text(String(describing: propertyValue ?? "nil/NULL"))
                                  .monospaced()
 
                          }
@@ -103,6 +139,10 @@ struct InstanceDetailView: View {
 
                     }
                 }
+                 
+                 Section(header: Text("Description")) {
+                     Text(String(describing: obj!))
+                 }
             }
              
                  

@@ -115,6 +115,77 @@ static NSArray* _Nullable instanceVariablesForCls(Class _Nullable cls) {
     
     return ivarsArray;
 }
+#pragma mark type encoding
+
+static NSDictionary* _Nonnull typencMap =   @{
+                                @"\0" : @"null",
+                                @"?"  : @"unknown",
+                                @"c"  : @"char",
+                                @"i"  : @"int",
+                                @"s"  : @"short",
+                                @"l"  : @"long",
+                                @"q"  : @"long long",
+                                @"C"  : @"unsigned char",
+                                @"I"  : @"unsigned int",
+                                @"S"  : @"unsigned short",
+                                @"L"  : @"unsigned long",
+                                @"Q"  : @"unsigned long long",
+                                @"f"  : @"float",
+                                @"d"  : @"double",
+                                @"D"  : @"long double",
+                                @"B"  : @"BOOL",
+                                @"v"  : @"void",
+                                @"*"  : @"char *",
+                                @"@"  : @"id",
+                                @"#"  : @"Class",
+                                @":"  : @"SEL",
+                                @"["  : @"array (begin)",
+                                @"]"  : @"array (end)",
+                                @"{"  : @"struct (begin)",
+                                @"}"  : @"struct (end)",
+                                @"("  : @"union (begin)",
+                                @")"  : @"union (end)",
+                                @"\"" : @"quote",
+                                @"b"  : @"bit field",
+                                @"^"  : @"pointer",
+                                @"r"  : @"const"
+                            };
+
+static NSString* _Nullable typenc_getReturnType(const char* _Nullable typeEncoding){
+    
+    NSMethodSignature* signature = [NSMethodSignature signatureWithObjCTypes:typeEncoding];
+    
+    @try{
+        return [typencMap objectForKey: [NSString stringWithUTF8String:[signature methodReturnType]]];
+    }
+    @catch(NSException* exception){
+        NSLog(@"[mlex] typenc ret exception: %@", exception);
+        return @"";
+    }
+}
+
+static NSArray* _Nullable typenc_getArgumentTypes(const char* _Nullable typeEncoding){
+    
+    NSMethodSignature* signature = [NSMethodSignature signatureWithObjCTypes:typeEncoding];
+    
+    NSMutableArray* argumentTypes = [NSMutableArray array];
+    
+    for (int i = 0; i < [signature numberOfArguments]; i++) {
+        @try{
+            [argumentTypes addObject:[typencMap objectForKey: [NSString stringWithUTF8String:[signature getArgumentTypeAtIndex:i]]]];
+        }
+        @catch(NSException* exception){
+            NSLog(@"[mlex] typenc arg exception: %@", exception);
+        }
+    }
+    if(argumentTypes.count >= 2){
+        [argumentTypes removeObjectAtIndex:0];
+        [argumentTypes removeObjectAtIndex:0];
+    }
+    return argumentTypes;
+}
+
+#pragma mark pointer safety
 
 static BOOL pointerIsReadable(const void* _Nullable inPtr) { //stolen from FLEX
     kern_return_t error = KERN_SUCCESS;

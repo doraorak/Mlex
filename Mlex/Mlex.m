@@ -28,7 +28,7 @@
 }
 
 -(void) MXCreateWindow {
-    self.MxWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(400, 400, 1200, 1400)
+    self.MxWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(400, 400, 1800, 1400)
                                                 styleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable |
                      NSWindowStyleMaskResizable | NSWindowStyleMaskMiniaturizable
                                                   backing:NSBackingStoreBuffered
